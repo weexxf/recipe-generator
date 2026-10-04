@@ -26,16 +26,18 @@ header h1 {
     color: #ffffff;
 }
 
+header nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
 header nav a {
     color: #ffffff;
     text-decoration: none;
-    margin: 20px;
     font-weight: 600;
     font-size: 1.1rem;
-}
-
-header nav a:last-child {
-    margin-right: 0;
 }
 
 header nav a:hover {
@@ -79,13 +81,8 @@ section h2 {
     background-color: #f0eadd;
     border-radius: 8px;
     border: 1px solid #dcd3b6;
-    margin-bottom: 15px;
     display: flex;
     align-items: center;
-}
-
-.history-card:last-child {
-    margin-bottom: 0;
 }
 
 .history-card img {
@@ -108,4 +105,31 @@ footer {
     border-top: 1px solid #e0d8c3;
     margin-top: 40px;
     font-size: 0.9rem;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+@media (min-width: 600px) {
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .recipe-card {
+        max-width: 600px;
+        margin: 0 auto;
+    }
 }
