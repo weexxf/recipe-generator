@@ -14,9 +14,9 @@ body {
 }
 
 header {
-    background-color: #ff8c00;
+    background-color: #c65300;
     padding: 24px;
-    border-bottom: 4px solid #d67600;
+    border-bottom: 4px solid #994000;
     text-align: center;
 }
 
@@ -78,11 +78,12 @@ section h2 {
 
 .history-card {
     padding: 10px;
-    background-color: #f0eadd;
+    background-color: #f4ebd8;;
     border-radius: 8px;
-    border: 1px solid #dcd3b6;
+    border: 1px solid #e3d5b8;
     display: flex;
     align-items: center;
+    color: #555555;
 }
 
 .history-card img {
@@ -118,6 +119,36 @@ img {
     gap: 15px;
 }
 
+/* Щоб кнопку було "весело натискати знову і знову" зроблено імітацію фізичного натискання */
+button {
+    background-color: #d9381e;
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: 900;
+    padding: 15px 50px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 8px 0 #a62a15;
+    transition: all 0.1s ease;
+    display: block;
+    margin: 20px auto;
+}
+
+button:active {
+    transform: translateY(8px);
+    box-shadow: none;
+}
+
+.recipe-card h3 {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #c65300;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 15px;
+}
+
 @media (min-width: 600px) {
     .cards {
         grid-template-columns: repeat(2, 1fr);
@@ -125,8 +156,13 @@ img {
 }
 
 @media (min-width: 1024px) {
+    .main {
+        max-width: 1200px;
+        padding: 0 40px;
+    }
     .cards {
         grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
     }
     .recipe-card {
         max-width: 600px;
