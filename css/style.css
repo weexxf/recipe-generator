@@ -63,11 +63,18 @@ section h2 {
 
 .recipe-card {
     padding: 28px;
+    margin: 20px auto;
+    max-width: 400px;
     text-align: center;
-    border: 2px solid #ff8c00;
+    border: 2px solid #ffcc80;
     border-radius: 12px;
-    background-color: #ffe0b2;
+    background-color: #fff8eb;
     box-shadow: 0 4px 10px rgba(255, 140, 0, 0.2);
+}
+
+.recipe-card.vegetarian {
+    border-color: #4caf50;
+    background-color: #e8f5e9;
 }
 
 .recipe-card img {
@@ -78,7 +85,7 @@ section h2 {
 
 .history-card {
     padding: 10px;
-    background-color: #f4ebd8;;
+    background-color: #f4ebd8;
     border-radius: 8px;
     border: 1px solid #e3d5b8;
     display: flex;
