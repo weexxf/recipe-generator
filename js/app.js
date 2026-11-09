@@ -1,4 +1,4 @@
-console.log('app.js підключено - Лабораторна 7');
+console.log('app.js підключено - Лабораторна 8');
 
 const recipes = [
     { name: "Запечена свинина з картоплею", timeMinutes: 60, vegetarian: false },
@@ -15,10 +15,25 @@ const resultContainer = document.querySelector('#recipe-result');
 const countDisplay = document.querySelector('#history-count');
 const generateButton = document.querySelector('button');
 const historyContainer = document.querySelector('.cards');
+const vegetarianCheckbox = document.querySelector('#vegetarian-only');
 
 function renderRandomRecipe() {
-    resultContainer.innerHTML = ''; 
-    const currentRecipe = pickRandom(recipes);
+    // Видалення попередньої картки перед відображенням нового рецепта
+    const oldCard = resultContainer.querySelector('.recipe-card');
+
+    if (oldCard) {
+        oldCard.remove();
+    }
+    // Визначення доступних рецептів залежно від стану чекбокса
+    let availableRecipes;
+
+    if (vegetarianCheckbox.checked === true) {
+        availableRecipes = recipes.filter(recipe => recipe.vegetarian);
+    } else {
+        availableRecipes = recipes;
+    }
+
+    const currentRecipe = pickRandom(availableRecipes);
 
     const card = document.createElement('article');
     card.classList.add('recipe-card');
@@ -64,3 +79,8 @@ function renderRandomRecipe() {
 
 generateButton.addEventListener('click', renderRandomRecipe);
 renderRandomRecipe();
+
+// Оновлення рецепта при зміні фільтра вегетаріанських страв
+vegetarianCheckbox.addEventListener('change', () => {
+    renderRandomRecipe();
+});
