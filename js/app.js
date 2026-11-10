@@ -1,53 +1,40 @@
-console.log('app.js підключено - Лабораторна 8');
-
-const recipes = [
-    { name: "Запечена свинина з картоплею", timeMinutes: 60, vegetarian: false },
-    { name: "Паста з грибами у вершковому соусі", timeMinutes: 30, vegetarian: true },
-    { name: "Куряче філе в кисло-солодкому соусі", timeMinutes: 40, vegetarian: false },
-    { name: "Грецький салат з фетою", timeMinutes: 15, vegetarian: true },
-    { name: "Стейк із лосося з овочами", timeMinutes: 45, vegetarian: false }
-];
+console.log('app.js підключено - Практична робота 9');
 
 const pickRandom = arr => arr[Math.floor(Math.random() * arr.length)];
 let historyCounter = 0;
 
 const resultContainer = document.querySelector('#recipe-result');
 const countDisplay = document.querySelector('#history-count');
-const generateButton = document.querySelector('button');
+const generateButton = document.querySelector('#generate-button');
 const historyContainer = document.querySelector('.cards');
 const vegetarianCheckbox = document.querySelector('#vegetarian-only');
+const API_URL = 'https://www.themealdb.com/api/json/v1/1/random.php';
+const loadingStatus = document.querySelector('#loading-status');
+const errorMessage = document.querySelector('#error-message');
+const refreshButton = document.querySelector('#refresh-button');
 
-function renderRandomRecipe() {
+function renderRandomRecipe(recipe) {
     // Видалення попередньої картки перед відображенням нового рецепта
     const oldCard = resultContainer.querySelector('.recipe-card');
 
     if (oldCard) {
         oldCard.remove();
     }
-    // Визначення доступних рецептів залежно від стану чекбокса
-    let availableRecipes;
 
-    if (vegetarianCheckbox.checked === true) {
-        availableRecipes = recipes.filter(recipe => recipe.vegetarian);
-    } else {
-        availableRecipes = recipes;
-    }
-
-    const currentRecipe = pickRandom(availableRecipes);
+    const currentRecipe = recipe;
 
     const card = document.createElement('article');
     card.classList.add('recipe-card');
-    card.setAttribute('data-time', currentRecipe.timeMinutes);
 
     const img = document.createElement('img');
-    img.src = 'assets/img/1.jpg';
-    img.alt = 'Фото страви';
+    img.src = currentRecipe.image;
+    img.alt = currentRecipe.name;
 
     const title = document.createElement('h3');
     title.textContent = currentRecipe.name;
 
     const details = document.createElement('p');
-    details.textContent = `Час приготування: ${currentRecipe.timeMinutes} хв.`;
+    details.textContent = currentRecipe.instructions;
     
     if (currentRecipe.vegetarian) {
         card.classList.add('vegetarian');
@@ -67,9 +54,9 @@ function renderRandomRecipe() {
     historyCard.classList.add('history-card');
 
     const historyImg = document.createElement('img');
-    historyImg.src = 'assets/img/1.jpg';
-    historyImg.alt = 'Мініатюра страви';
-    
+    historyImg.src = currentRecipe.image;
+    historyImg.alt = currentRecipe.name;
+
     const historyTitle = document.createElement('h3');
     historyTitle.textContent = currentRecipe.name;
     
@@ -77,10 +64,84 @@ function renderRandomRecipe() {
     historyContainer.append(historyCard);
 }
 
-generateButton.addEventListener('click', renderRandomRecipe);
-renderRandomRecipe();
+// Завантаження випадкового рецепта з TheMealDB API
+// https://www.themealdb.com/api/json/v1/1/random.php
+async function loadRecipe() {
+    loadingStatus.hidden = false;
+    errorMessage.hidden = true;
+    generateButton.disabled = true;
+    refreshButton.disabled = true;
 
-// Оновлення рецепта при зміні фільтра вегетаріанських страв
-vegetarianCheckbox.addEventListener('change', () => {
-    renderRandomRecipe();
-});
+    try {
+        let url = API_URL;
+
+        // Для вегетаріанських страв отримуємо рецепт з відповідної категорії
+        if (vegetarianCheckbox.checked) {
+            const listResponse = await fetch(
+                'https://www.themealdb.com/api/json/v1/1/filter.php?c=Vegetarian',
+                { cache: 'no-store' }
+            );
+
+            if (!listResponse.ok) {
+                throw new Error(`HTTP ${listResponse.status}`);
+            }
+
+            const listData = await listResponse.json();
+
+            if (!listData.meals?.length) {
+                throw new Error('Вегетаріанські рецепти не знайдено');
+            }
+
+            const selected = pickRandom(listData.meals);
+
+            url = `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${selected.idMeal}`;
+        }
+
+        const response = await fetch(url, { cache: 'no-store' });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.meals?.length) {
+            throw new Error('Рецепт не знайдено');
+        }
+
+        const meal = data.meals[0];
+
+        const recipe = {
+            name: meal.strMeal,
+            image: meal.strMealThumb,
+            instructions: meal.strInstructions,
+            vegetarian: meal.strCategory === 'Vegetarian'
+        };
+
+        renderRandomRecipe(recipe);
+
+    } catch (error) {
+        errorMessage.textContent =
+            'Не вдалося завантажити рецепт. Спробуйте ще раз.';
+
+        errorMessage.hidden = false;
+        console.error(error);
+
+    } finally {
+        loadingStatus.hidden = true;
+        generateButton.disabled = false;
+        refreshButton.disabled = false;
+    }
+}
+
+// Генерація нового рецепта
+generateButton.addEventListener('click', loadRecipe);
+
+// Повторний запит до API
+refreshButton.addEventListener('click', loadRecipe);
+
+// Оновлення рецепта при зміні фільтра
+vegetarianCheckbox.addEventListener('change', loadRecipe);
+
+// Початкове завантаження рецепта
+loadRecipe();

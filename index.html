@@ -20,7 +20,10 @@
     <main>
         <section id="generate">
             <h2>Згенерувати рецепт</h2>
-            <button>Згенерувати</button>
+            <button type="button" id="generate-button">Згенерувати</button>
+            <p id="loading-status" hidden>Завантаження рецепта...</p>
+            <p id="error-message" role="alert" hidden></p>
+            <button type="button" id="refresh-button">Оновити</button>
             <form id="recipe-filter">
                 <label for="vegetarian-only">
                     <input type="checkbox" id="vegetarian-only">
