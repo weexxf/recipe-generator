@@ -176,3 +176,9 @@ button:active {
         margin: 0 auto;
     }
 }
+
+.veg-badge {
+    color: green;
+    font-weight: 600;
+    font-size: 0.9rem;
+}

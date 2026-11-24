@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор рецептів на вечерю</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js" defer></script>
     <script src="js/app.js" defer></script>
 </head>
+
 <body>
     <header>
         <h1>Генератор рецептів на вечерю</h1>
@@ -16,7 +19,7 @@
             <a href="#history">Історія рецептів</a>
         </nav>
     </header>
-    
+
     <main>
         <section id="generate">
             <h2>Згенерувати рецепт</h2>
@@ -32,20 +35,13 @@
             </form>
         </section>
 
-        <section id="recipe">
-            <h2>Перегляд рецепта</h2>
-            <div id="recipe-result"></div>
-        </section>
+        <div id="vue-app"></div>
 
-        <section id="history">
-            <h2>Історія згенерованих рецептів</h2>
-            <p>Згенеровано рецептів за сеанс: <span id="history-count">0</span></p>
-            <div class="cards"></div> 
-        </section>
-            </main>
-    
+    </main>
+
     <footer>
         <p>&copy; Навчальне призначення. 2026 рік.</p>
     </footer>
 </body>
+
 </html>
