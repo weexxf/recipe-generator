@@ -182,3 +182,12 @@ button:active {
     font-weight: 600;
     font-size: 0.9rem;
 }
+
+#favorites .history-card button {
+    width: auto;
+    min-width: 0;
+    padding: 6px 10px;
+    font-size: 12px;
+    margin-left: auto;
+    flex-shrink: 0;
+}

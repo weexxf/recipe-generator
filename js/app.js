@@ -1,4 +1,4 @@
-console.log('app.js підключено - Практична робота 10');
+console.log('app.js підключено - Практична робота 11');
 
 const pickRandom = arr => arr[Math.floor(Math.random() * arr.length)];
 
@@ -11,6 +11,96 @@ const refreshButton = document.querySelector('#refresh-button');
 
 // Завантаження випадкового рецепта з TheMealDB API
 // https://www.themealdb.com/api/json/v1/1/random.php
+function loadFromLocalStorage() {
+    try {
+        const saved = localStorage.getItem('favorites');
+
+        if (saved) {
+            const recipes = JSON.parse(saved);
+            return recipes;
+        }
+
+        return [];
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}  
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('RecipeDB', 1);
+
+        request.onupgradeneeded = () => {
+            const db = request.result;
+
+            if (!db.objectStoreNames.contains('favorites')) {
+                db.createObjectStore('favorites', {
+                    keyPath: 'id'
+                });
+            }
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function addItem(item) {
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction('favorites', 'readwrite');
+
+        tx.objectStore('favorites').put(item);
+
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+async function getAllItems() {
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction('favorites', 'readonly');
+        const request = tx.objectStore('favorites').getAll();
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function deleteItem(id) {
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction('favorites', 'readwrite');
+
+        tx.objectStore('favorites').delete(id);
+
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+async function migrateFavorites() {
+    if (localStorage.getItem('migrated') === 'true') {
+        return;
+    }
+
+    const oldFavorites = loadFromLocalStorage();
+    const dbFavorites = await getAllItems();
+
+    if (dbFavorites.length === 0) {
+        for (const item of oldFavorites) {
+            await addItem(item);
+        }
+    }
+
+    localStorage.setItem('migrated', 'true');
+}
+
 async function loadRecipe() {
     loadingStatus.hidden = false;
     errorMessage.hidden = true;
@@ -59,7 +149,8 @@ async function loadRecipe() {
             name: meal.strMeal,
             image: meal.strMealThumb,
             instructions: meal.strInstructions,
-            vegetarian: meal.strCategory === 'Vegetarian'
+            vegetarian: meal.strCategory === 'Vegetarian',
+            id: meal.idMeal,
         };
         vm.currentRecipe = recipe;
 
@@ -96,7 +187,7 @@ loadRecipe();
 
 const RandomRecipeCard = {
     props: ['recipe'],
-    emits: ['regenerate'],
+    emits: ['regenerate', 'add-favorite'],
 
     template: `
         <article class="recipe-card" :class="{ vegetarian: recipe.vegetarian }">
@@ -115,21 +206,59 @@ const RandomRecipeCard = {
             <button type="button" @click="$emit('regenerate')">
                 Ще!
             </button>
+            <button type="button" @click="$emit('add-favorite', recipe)">
+                Додати до улюблених
+            </button>
         </article>
     `
 };
+
+function saveToLocalStorage(items) {
+    const json = JSON.stringify(items);
+    localStorage.setItem('favorites', json);
+}
 
 const vueApp = Vue.createApp({
     components: { RandomRecipeCard },
     data() {
         return {
             recipes: [],
+            favorites: [],
             currentRecipe: null
         };
     },
     methods: {
+        async addFavorite(recipe) {
+            const exists = this.favorites.some(item => item.id === recipe.id);
+
+            if (exists) return;
+
+            await addItem({
+                id: recipe.id,
+                name: recipe.name,
+                imageUrl: recipe.image
+            });
+
+            this.favorites = await getAllItems();
+        },
+
+        async removeFavorite(id) {
+            await deleteItem(id);
+            this.favorites = await getAllItems();
+        },
+
         regenerateRecipe() {
             loadRecipe();
+        }
+    },
+
+    async mounted() {
+        try {
+            await migrateFavorites();
+            this.favorites = await getAllItems();
+        } catch (error) {
+            console.error(error);
+            alert('Не вдалося відкрити IndexedDB.');
         }
     },
 
@@ -142,6 +271,7 @@ const vueApp = Vue.createApp({
                     v-if="currentRecipe"
                     :recipe="currentRecipe"
                     @regenerate="regenerateRecipe"
+                    @add-favorite="addFavorite"
                 ></random-recipe-card>
             </section>
 
@@ -163,6 +293,29 @@ const vueApp = Vue.createApp({
                     </article>
                 </div>
             </section>
+
+            <section id="favorites">
+            <h2>Улюблені рецепти</h2>
+
+            <p v-if="favorites.length === 0">
+                Улюблених рецептів поки немає.
+            </p>
+
+            <div class="cards">
+                <article
+                    v-for="item in favorites"
+                    :key="item.id"
+                    class="history-card"
+                >
+                    <img :src="item.imageUrl" :alt="item.name">
+                    <h3>{{ item.name }}</h3>
+
+                    <button type="button" @click="removeFavorite(item.id)">
+                        Видалити
+                    </button>
+                </article>
+            </div>
+        </section>
         </div>
     `
 });
